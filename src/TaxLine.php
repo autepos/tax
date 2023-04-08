@@ -152,4 +152,14 @@ class TaxLine
     {
         return $this->taxCode;
     }
+
+    /**
+     * Get the value of taxableDeviceLines
+     *
+     * @return array<int,TaxableDeviceLine>
+     */
+    public function getTaxableDeviceLines(): array
+    {
+        return $this->taxableDeviceLines;
+    }
 }

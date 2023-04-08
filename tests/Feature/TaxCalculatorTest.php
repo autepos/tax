@@ -181,12 +181,14 @@ class TaxCalculatorTest extends TestCase
     }
 
     /**
-     * Test that when calculating tax, taxable device lines can be grouped by tax code.
+     * Test that tax can be calculated when taxable device lines are grouped by tax code.
      */
     public function testTaxableDeviceLinesCanBeGroupedByTaxCode()
     {
         $taxCode1 = '100L';
         $taxCode2 = '200L';
+        $taxCode3 = '200L';
+
 
         // Create tax rate
         $this->createDefaultTaxRate();
@@ -198,11 +200,12 @@ class TaxCalculatorTest extends TestCase
         $taxableDevice = new TaxableDeviceFixture(1, 'order');
 
         // Create a couple of taxable device lines.
-        $taxableDeviceLine1 = new TaxableDeviceLineFixture(1, 'order-line', $taxCode1, 100, false);
-        $taxableDeviceLine2 = new TaxableDeviceLineFixture(2, 'order-line', $taxCode2, 100, false);
+        $taxableDeviceLine1 = new TaxableDeviceLineFixture(1, 'order-line', $taxCode1);
+        $taxableDeviceLine2 = new TaxableDeviceLineFixture(2, 'order-line', $taxCode2);
+        $taxableDeviceLine3 = new TaxableDeviceLineFixture(3, 'order-line', $taxCode3);
 
         // Add the device line to the device
-        $taxableDevice->setTaxableDeviceLines(...[$taxableDeviceLine1, $taxableDeviceLine2]);
+        $taxableDevice->setTaxableDeviceLines(...[$taxableDeviceLine1, $taxableDeviceLine2, $taxableDeviceLine3]);
 
         // Add the device to the tax calculator and calculate tax
         $taxCalculator->addTaxableDevice($taxableDevice);
@@ -213,13 +216,65 @@ class TaxCalculatorTest extends TestCase
         $expected = 2;
         $this->assertCount($expected, $taxLineList->all());
 
-        // Test that each tax line has either tax code 1 or 2
-        $taxCodeList = [];
+        // Test that each tax line has either tax code 1 or 2 where tax code 2 is used twice.
+
+        $taxCode1Found = false;
+        $taxCode2Found = false;
         foreach ($taxLineList->all() as $taxLine) {
-            $taxCodeList[] = $taxLine->getTaxCode();
+            if ($taxLine->getTaxCode() === $taxCode1) {
+                $this->assertCount(1, $taxLine->getTaxableDeviceLines());
+                $taxCode1Found = true;
+            } elseif ($taxLine->getTaxCode() === $taxCode2) {
+                $this->assertCount(2, $taxLine->getTaxableDeviceLines());
+                $taxCode2Found = true;
+            }else{
+                $this->fail('Unexpected tax code found');
+            }
         }
-        $this->assertContains($taxCode1, $taxCodeList);
-        $this->assertContains($taxCode2, $taxCodeList);
+        $this->assertTrue($taxCode1Found);
+        $this->assertTrue($taxCode2Found);
+
+        
+    }
+
+    /**
+     * Test that tax can be calculated when taxable device lines are not grouped by tax code.
+     */
+    public function testTaxableDeviceLinesMayNotBeGroupedByTaxCode()
+    {
+        $taxCode1 = '100L';
+        $taxCode2 = '200L';
+        $taxCode3 = '200L';
+
+        // Create tax rate
+        $this->createDefaultTaxRate();
+
+        // Create tax calculator
+        $taxCalculator = new TaxCalculatorFixture();
+
+        // Create taxable device
+        $taxableDevice = new TaxableDeviceFixture(1, 'order');
+
+        // Create a couple of taxable device lines.
+        $taxableDeviceLine1 = new TaxableDeviceLineFixture(1, 'order-line', $taxCode1);
+        $taxableDeviceLine2 = new TaxableDeviceLineFixture(2, 'order-line', $taxCode2);
+        $taxableDeviceLine3 = new TaxableDeviceLineFixture(3, 'order-line', $taxCode3);
+
+        // Add the device line to the device
+        $taxableDevice->setTaxableDeviceLines(...[$taxableDeviceLine1, $taxableDeviceLine2, $taxableDeviceLine3]);
+
+        // Add the device to the tax calculator and calculate tax
+        $taxCalculator->addTaxableDevice($taxableDevice);
+        $taxLineList = $taxCalculator->setGroupByTaxCode(false)
+                                    ->calculate();
+
+        // Test
+        $expected = 3;
+        $this->assertCount($expected, $taxLineList->all());
+        foreach ($taxLineList->all() as $taxLine) {
+            $this->assertCount(1, $taxLine->getTaxableDeviceLines());
+        }
+
     }
 
     /**

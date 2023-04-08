@@ -96,20 +96,32 @@ abstract class TaxCalculator
                         ? $this->taxableDeviceLineGrouper->byTaxCode(...$taxableDeviceLineByProvince)
                         : [$taxableDeviceLineByProvince];
                     foreach ($taxableDeviceLineGroups as $taxableDeviceLineGroup) {
-                        /**
-                         * We can associate a tax rate with each taxable device line in the
-                         * group. However, we only need to do this for one of the lines in
-                         * the group because we do not a expect a different tax rate for
-                         * for items with the same tax code if they have the same address
-                         * and tenant id. Therefore, we will use the first line in the group
-                         * to find the tax rate for all lines.
-                         */
-                        $taxableDeviceLineRep = $taxableDeviceLineGroup[0];
-                        $address = $this->address($taxableDeviceLineRep);
-                        $taxCode = $taxableDeviceLineRep->getTaxableDeviceLineTaxCode();
-                        $taxRate = $this->findTaxRate($taxableDeviceLineRep, $taxCode, $address);
-                        $taxLine = $this->calculateTaxLine($taxRate, $taxCode, $address, ...$taxableDeviceLineGroup);
-                        $taxLineList->add($taxLine);
+                        
+                        // TODO: combine the following two if statements into one to reduce cyclomatic complexity
+                        if($this->groupByTaxCode){
+                            /**
+                             * We can associate a tax rate with each taxable device line in the
+                             * group. However, we only need to do this for one of the lines in
+                             * the group because we do not a expect a different tax rate for
+                             * for items with the same tax code if they have the same address
+                             * and tenant id. Therefore, we will use the first line in the group
+                             * to find the tax rate for all lines.
+                             */
+                            $taxableDeviceLineRep = $taxableDeviceLineGroup[0];
+                            $address = $this->address($taxableDeviceLineRep);
+                            $taxCode = $taxableDeviceLineRep->getTaxableDeviceLineTaxCode();
+                            $taxRate = $this->findTaxRate($taxableDeviceLineRep, $taxCode, $address);
+                            $taxLine = $this->calculateTaxLine($taxRate, $taxCode, $address, ...$taxableDeviceLineGroup);
+                            $taxLineList->add($taxLine);
+                        }else{
+                            foreach ($taxableDeviceLineGroup as $taxableDeviceLine) {
+                                $address = $this->address($taxableDeviceLine);
+                                $taxCode = $taxableDeviceLine->getTaxableDeviceLineTaxCode();
+                                $taxRate = $this->findTaxRate($taxableDeviceLine, $taxCode, $address);
+                                $taxLine = $this->calculateTaxLine($taxRate, $taxCode, $address, $taxableDeviceLine);
+                                $taxLineList->add($taxLine);
+                            }
+                        }
                     }
                 }
             }
