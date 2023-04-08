@@ -1,0 +1,53 @@
+{
+    "name": "autepos/tax",
+    "type": "library",
+    "description": "Tax package for laravel",
+    "keywords": ["tax","autepos", "laravel"],
+    "license": "MIT",
+    "require": {
+        "php": "^8.0",
+        "laravel/framework": "^9.0||^10.0",
+        "autepos/ai-payment":"dev-main"
+    },
+    "require-dev": {
+        "laravel/pint": "^1.5",
+        "mockery/mockery": "^1.5",
+        "orchestra/testbench": "^7.6"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Autepos\\Tax\\TaxServiceProvider"
+            ]
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Autepos\\Tax\\": "src/",
+            "Autepos\\Tax\\Database\\Factories\\": "database/factories/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Autepos\\Tax\\Tests\\": "tests/"
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "scripts": {
+        "post-autoload-dump": [
+
+        ],
+        "post-root-package-install": [
+            
+        ],
+        "post-create-project-cmd": [
+
+        ],
+        "test":"php vendor/bin/phpunit",
+        "testf":"php vendor/bin/phpunit --filter"
+    }
+}
