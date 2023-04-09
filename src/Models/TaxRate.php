@@ -5,6 +5,27 @@ namespace Autepos\Tax\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Tax rate model.
+ * 
+ * @property int $id Id.
+ * @property string|null $tenant_id Tenant id.
+ * @property string|null $taxable_id Taxable id e.g id of a Product item/shipping cost.
+ * @property string|null $tax_code Tax code.
+ * @property string|null $country_code Country code.
+ * @property string|null $province Province.
+ * @property float $percentage Percentage.
+ * @property string $tax_type Tax type.
+ * @property string $status Status.
+ * @property array|null $meta Tax rate meta.
+ * @property string|null $description Tax rate description.
+ * @property string|null $name Tax rate name.
+ * @property \Illuminate\Support\Carbon|null $created_at Date of model creation.
+ * @property \Illuminate\Support\Carbon|null $updated_at Date of model update.
+ * @property \Autepos\Tax\Models\TaxCode|null $taxCode Tax code.
+ * 
+ * 
+ */
 class TaxRate extends Model
 {
     use HasFactory;
@@ -40,6 +61,16 @@ class TaxRate extends Model
     protected static function newFactory()
     {
         return \Autepos\Tax\Database\Factories\TaxRateFactory::new();
+    }
+
+    /**
+     * Relationship with tax code.
+     * 
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function taxCode()
+    {
+        return $this->belongsTo(TaxCode::class);
     }
 
     /**
